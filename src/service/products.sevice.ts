@@ -1,6 +1,7 @@
 import ProductModel, { ProductInputtableTypes } from '../database/models/product.model';
+import { Product } from '../types/Product';
 
-type Product = {
+type Products = {
   id: number,
   name: string,
   price: string,
@@ -18,12 +19,18 @@ type ServiceSucesseful<T> = {
 
 type ServiceStatus<T> = ServiceError | ServiceSucesseful<T>;
 
-const findProduct = async (id:number): Promise<Product | null> => {
+const getProduct = async (): Promise<ServiceSucesseful<Product[]>> => {
+  const find = await ProductModel.findAll();
+  const findJson = find.map((element) => element.toJSON());
+  return { status: 200, data: findJson };
+};
+
+const findProduct = async (id:number): Promise<Products | null> => {
   const find = await ProductModel.findByPk(id, { attributes: { exclude: ['orderId'] } });
   return find?.dataValues || null;
 };
 
-const createProduct = async (product:ProductInputtableTypes): Promise<ServiceStatus<Product>> => {
+const createProduct = async (product:ProductInputtableTypes): Promise<ServiceStatus<Products>> => {
   const create = await ProductModel.create(product);
   const find = await findProduct(create.dataValues.id);
   if (find === null) {
@@ -35,4 +42,5 @@ const createProduct = async (product:ProductInputtableTypes): Promise<ServiceSta
 export default {
   createProduct,
   findProduct,
+  getProduct,
 };
